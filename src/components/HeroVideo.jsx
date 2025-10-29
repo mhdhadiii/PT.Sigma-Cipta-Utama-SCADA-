@@ -1,36 +1,30 @@
 import React from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
-// Video utama
-import heroVideo from "../assets/hero.mp4";
-// (Opsional) jika kamu punya gambar background statis
-// import heroBg from "../assets/hero_bg.jpg";
+// ❌ Hapus import video dari assets (karena file ada di /public)
+// import heroVideo from "../assets/hero.mp4";
+// (Opsional) kalau kamu punya gambar statis untuk poster, taruh di /public dan pakai: poster="/hero_poster.jpg"
 
 export default function HeroVideo() {
-  // efek parallax saat scroll
+  // efek parallax ringan (opsional)
   const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 400], [0, 80]); // pergeseran lembut
+  const y = useTransform(scrollY, [0, 400], [0, 80]);
 
   return (
     <section className="relative w-full px-8 md:px-12 py-8 md:py-10 overflow-hidden">
-      <div className="relative rounded-2xl overflow-hidden h-[85vh] min-h-[680px]">
-        {/* 🖼️ Static Background (optional) */}
-        {/* kalau tidak punya heroBg, blok ini bisa dihapus */}
-        {/* <motion.img
-          src={heroBg}
-          alt="Background Hero"
-          style={{ y }}
-          className="absolute top-0 left-0 w-full h-full object-cover scale-105 blur-sm brightness-90"
-        /> */}
-
-        {/* 🎥 Background Video */}
+      <motion.div
+        className="relative rounded-2xl overflow-hidden h-[85vh] min-h-[680px]"
+        style={{ y }}
+      >
+        {/* 🎥 Background Video dari /public */}
         <video
           className="absolute top-0 left-0 w-full h-full object-cover opacity-95"
-          src={heroVideo}
+          src="/hero.mp4"              // ✅ pakai path absolut ke /public
           autoPlay
           loop
           muted
           playsInline
+          preload="metadata"
         />
 
         {/* 🌑 Overlay gradient */}
@@ -38,7 +32,6 @@ export default function HeroVideo() {
 
         {/* 🧩 Content */}
         <div className="relative z-10 flex flex-col justify-center h-full px-10 md:px-20 text-left">
-          {/* Subtitle */}
           <motion.span
             className="text-sm md:text-base text-red-400 font-semibold mb-3 tracking-wide"
             initial={{ opacity: 0, y: -20 }}
@@ -49,13 +42,12 @@ export default function HeroVideo() {
             PT Sigma Cipta Utama
           </motion.span>
 
-          {/* Title */}
           <motion.h1
             className="text-4xl md:text-6xl font-extrabold text-white leading-snug mb-6 max-w-2xl drop-shadow-lg"
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: false, amount: 0.5 }}
-            transition={{ duration: 1, ease: 'easeOut' }}
+            transition={{ duration: 1, ease: "easeOut" }}
           >
             Digital Solutions, <br />
             <motion.span
@@ -69,7 +61,6 @@ export default function HeroVideo() {
             </motion.span>
           </motion.h1>
 
-          {/* Paragraph */}
           <motion.p
             className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl leading-relaxed"
             initial={{ opacity: 0 }}
@@ -80,7 +71,6 @@ export default function HeroVideo() {
             We deliver the best services through innovative technologies for a more sustainable future.
           </motion.p>
 
-          {/* CTA */}
           <motion.div
             className="flex flex-wrap gap-4"
             initial={{ opacity: 0, y: 20 }}
@@ -102,7 +92,7 @@ export default function HeroVideo() {
             </a>
           </motion.div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

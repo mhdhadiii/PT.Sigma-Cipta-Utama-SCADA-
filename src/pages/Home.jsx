@@ -226,9 +226,6 @@ export default function Home() {
         <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-1/2">
           <div className="mx-auto max-w-6xl px-4">
             <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-2">
-              <Badge>ISO 9001 • 14001 • 45001 • 20000-1 • 27001</Badge>
-              <Badge>29,616 m² Warehouse</Badge>
-              <Badge>Pertamina Group</Badge>
             </div>
           </div>
         </div>
