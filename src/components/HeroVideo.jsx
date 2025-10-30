@@ -1,12 +1,11 @@
 import React from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
-// ❌ Hapus import video dari assets (karena file ada di /public)
-// import heroVideo from "../assets/hero.mp4";
-// (Opsional) kalau kamu punya gambar statis untuk poster, taruh di /public dan pakai: poster="/hero_poster.jpg"
+// ✅ Path aman untuk Vercel + Vite
+const videoUrl = new URL("/hero.mp4", import.meta.env.BASE_URL).href;
 
 export default function HeroVideo() {
-  // efek parallax ringan (opsional)
+  // efek parallax (opsional)
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 400], [0, 80]);
 
@@ -16,21 +15,23 @@ export default function HeroVideo() {
         className="relative rounded-2xl overflow-hidden h-[85vh] min-h-[680px]"
         style={{ y }}
       >
-        {/* 🎥 Background Video dari /public */}
+        {/* ✅ Background Video */}
         <video
           className="absolute top-0 left-0 w-full h-full object-cover opacity-95"
-          src="/hero.mp4"              // ✅ pakai path absolut ke /public
+          src={videoUrl}
           autoPlay
           loop
           muted
           playsInline
           preload="metadata"
+          onLoadedData={() => console.log("[VIDEO LOADED]:", videoUrl)}
+          onError={() => console.log("[VIDEO ERROR]:", videoUrl)}
         />
 
-        {/* 🌑 Overlay gradient */}
+        {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent backdrop-blur-[1px]" />
 
-        {/* 🧩 Content */}
+        {/* Content */}
         <div className="relative z-10 flex flex-col justify-center h-full px-10 md:px-20 text-left">
           <motion.span
             className="text-sm md:text-base text-red-400 font-semibold mb-3 tracking-wide"
@@ -68,7 +69,8 @@ export default function HeroVideo() {
             viewport={{ once: false, amount: 0.5 }}
             transition={{ delay: 1.4, duration: 1 }}
           >
-            We deliver the best services through innovative technologies for a more sustainable future.
+            We deliver the best services through innovative technologies for a
+            more sustainable future.
           </motion.p>
 
           <motion.div
