@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase, BUCKETS } from "../supabaseClient";
-import { LogOut, Users, Briefcase, Search, Download, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { LogOut, Users, Briefcase, Search, Download } from "lucide-react";
 import Logo from "../assets/logo.png";
 
 /* =============== Utils =============== */
@@ -56,7 +56,7 @@ import {
   ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   BarChart, Bar,
-  AreaChart, Area,
+  AreaChart, Area, // ⬅️ tambahan buat area-graph
 } from "recharts";
 
 /* ===== Tooltip mungil untuk semua chart ===== */
@@ -168,139 +168,52 @@ function Pager({ page, setPage, pageCount, pageSize, setPageSize, total }) {
   );
 }
 
-/* =============== Auth UI (Modernized) =============== */
+/* =============== Auth UI =============== */
 function AdminLogin() {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
-  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState("");
 
   const login = async (e) => {
     e.preventDefault();
-    setErr("");
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
     setLoading(false);
-    if (error) setErr(error.message);
-  };
-
-  const onForgot = async () => {
-    if (!email) return setErr("Masukkan email terlebih dahulu untuk reset password.");
-    setErr("");
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin, // sesuaikan jika punya route khusus reset
-    });
-    if (error) setErr(error.message);
-    else alert("Link reset password telah dikirim ke email kamu.");
+    if (error) alert(error.message);
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Background gradient + blobs */}
-      <div className="absolute inset-0 bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100" />
-      <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-blue-300/20 blur-3xl animate-pulse" />
-      <div className="pointer-events-none absolute -bottom-20 -right-16 h-80 w-80 rounded-full bg-indigo-300/20 blur-3xl animate-pulse" />
-
-      <div className="relative flex items-center justify-center min-h-screen px-4">
-        <form
-          onSubmit={login}
-          className="w-full max-w-md backdrop-blur-xl bg-white/70 border border-white/60 shadow-xl rounded-2xl p-6 md:p-8
-                     transition-all duration-300"
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-50 to-blue-100">
+      <form
+        onSubmit={login}
+        className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm space-y-4"
+      >
+        <img src={Logo} alt="logo" className="h-12 mx-auto" />
+        <h1 className="text-xl font-bold text-center">Admin Login</h1>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full border rounded-lg p-2"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={pw}
+          onChange={(e) => setPw(e.target.value)}
+          className="w-full border rounded-lg p-2"
+          required
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
         >
-          <div className="flex flex-col items-center gap-2 mb-6">
-            <img src={Logo} alt="logo" className="h-12 w-auto" />
-            <div className="text-center">
-              <h1 className="text-xl font-bold text-gray-900">Masuk Admin</h1>
-              <p className="text-sm text-gray-600">Silakan login untuk mengelola dashboard</p>
-            </div>
-          </div>
-
-          {/* Error alert */}
-          {err && (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {err}
-            </div>
-          )}
-
-          {/* Email */}
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <div className="relative mb-4">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <Mail size={18} />
-            </span>
-            <input
-              type="email"
-              placeholder="nama@perusahaan.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-white/80 pl-10 pr-3 py-2.5 text-sm
-                         outline-none ring-blue-200 focus:ring-4 transition"
-              required
-              autoFocus
-            />
-          </div>
-
-          {/* Password */}
-          <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-          <div className="relative mb-2">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <Lock size={18} />
-            </span>
-            <input
-              type={showPw ? "text" : "password"}
-              placeholder="••••••••"
-              value={pw}
-              onChange={(e) => setPw(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-white/80 pl-10 pr-10 py-2.5 text-sm
-                         outline-none ring-blue-200 focus:ring-4 transition"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPw((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              aria-label={showPw ? "Sembunyikan password" : "Tampilkan password"}
-            >
-              {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-
-          <div className="mb-5 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={onForgot}
-              className="text-xs text-blue-600 hover:text-blue-700 underline decoration-dotted"
-            >
-              Lupa password?
-            </button>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={cn(
-              "w-full inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 text-white",
-              "py-2.5 text-sm font-medium shadow hover:bg-blue-700 active:scale-[.99] transition",
-              loading && "opacity-90 cursor-not-allowed"
-            )}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin" size={18} />
-                Memproses…
-              </>
-            ) : (
-              "Masuk"
-            )}
-          </button>
-
-          {/* Footer kecil */}
-          <p className="mt-6 text-center text-xs text-gray-500">
-            Dilindungi oleh autentikasi <span className="font-medium text-gray-700">Supabase</span>
-          </p>
-        </form>
-      </div>
+          {loading ? "Loading..." : "Masuk"}
+        </button>
+      </form>
     </div>
   );
 }
@@ -391,11 +304,11 @@ export default function AdminDashboard() {
 
   const logout = async () => { await supabase.auth.signOut(); };
 
-  // ====== Aggregations for charts ======>
+  // ====== Aggregations for charts ======
   const last12MonthKeys = useMemo(() => {
     const now = new Date();
     const keys = [];
-    for (let i = 11; i >= 0; i++) {
+    for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       keys.push(toMonthKey(d));
     }
