@@ -1,12 +1,10 @@
 import React from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
-// ✅ URL aman untuk Vite/Vercel
-const mp4Url  = new URL("hero.mp4",  import.meta.env.BASE_URL).href;
-const webmUrl = new URL("hero.webm", import.meta.env.BASE_URL).href; // siapkan kalau kamu export webm juga
+// ✅ Paling aman → langsung gunakan path absolut dari public/
+const mp4Url = "/hero.mp4";
 
 export default function HeroVideo() {
-  // efek parallax (opsional)
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 400], [0, 80]);
 
@@ -16,23 +14,22 @@ export default function HeroVideo() {
         className="relative rounded-2xl overflow-hidden h-[85vh] min-h-[680px]"
         style={{ y }}
       >
-        {/* ✅ Background Video: fallback webm → mp4 */}
+        {/* 🎥 Video Background */}
         <video
           className="absolute top-0 left-0 w-full h-full object-cover opacity-95"
+          src={mp4Url}
           autoPlay
           loop
           muted
           playsInline
           preload="metadata"
-          // controls // (aktifkan sementara jika mau tes manual)
-          onLoadedData={(e) => console.log("[VIDEO LOADED]:", e.currentTarget.currentSrc)}
-          onError={(e) => console.log("[VIDEO ERROR]:", e.currentTarget.currentSrc, e.currentTarget.error)}
-        >
-          <source src={webmUrl} type="video/webm" />
-          <source src={mp4Url}  type="video/mp4" />
-          {/* Jika dua-duanya gagal */}
-          Browser Anda tidak mendukung video HTML5.
-        </video>
+          onLoadedData={() =>
+            console.log("[VIDEO LOADED]:", mp4Url)
+          }
+          onError={(e) => {
+            console.log("[VIDEO ERROR]", mp4Url, e);
+          }}
+        />
 
         {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent backdrop-blur-[1px]" />
