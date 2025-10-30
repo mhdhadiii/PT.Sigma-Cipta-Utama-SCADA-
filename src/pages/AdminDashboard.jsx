@@ -51,12 +51,77 @@ function downloadCSV(filename, headers, rows) {
   URL.revokeObjectURL(url);
 }
 
+/* ===== Helpers untuk download CV dari Supabase ===== */
+const isHttpUrl = (s = "") => /^https?:\/\//i.test(s);
+const basename = (p = "") => p.split("/").pop() || "";
+const extname = (p = "") => {
+  const b = basename(p);
+  const i = b.lastIndexOf(".");
+  return i >= 0 ? b.slice(i + 1) : "";
+};
+const sanitize = (s = "") =>
+  s.normalize("NFKD").replace(/[^\w.-]+/g, "_").replace(/_+/g, "_").replace(/^_+|_+$/g, "");
+
+async function downloadBlob(url, filename) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Gagal mengunduh (${res.status})`);
+  const blob = await res.blob();
+  const a = document.createElement("a");
+  const href = URL.createObjectURL(blob);
+  a.href = href;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(href);
+}
+
+/**
+ * Download CV dari bucket Supabase.
+ * - Jika cv_path URL penuh → langsung unduh.
+ * - Jika path object (mis: "folder/file.pdf"):
+ *   - Coba URL publik.
+ *   - Jika 403/401 → buat signed URL (60s) lalu unduh.
+ */
+async function handleDownloadCV({ cv_path, name }) {
+  try {
+    if (!cv_path) throw new Error("CV tidak tersedia");
+    const safeName = sanitize(name || "pelamar");
+    const ext = extname(cv_path) || "pdf";
+    const filename = `CV_${safeName}.${ext}`;
+
+    if (isHttpUrl(cv_path)) {
+      await downloadBlob(cv_path, filename);
+      return;
+    }
+
+    // Coba akses via public URL (jika bucket public)
+    const publicUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${BUCKETS.CV}/${cv_path}`;
+    const head = await fetch(publicUrl, { method: "HEAD" });
+
+    if (head.ok) {
+      await downloadBlob(publicUrl, filename);
+      return;
+    }
+
+    // Jika bukan public, pakai signed URL
+    const { data, error } = await supabase.storage
+      .from(BUCKETS.CV)
+      .createSignedUrl(cv_path, 60); // berlaku 60 detik
+
+    if (error || !data?.signedUrl) throw error || new Error("Gagal membuat signed URL");
+    await downloadBlob(data.signedUrl, filename);
+  } catch (e) {
+    alert(e?.message || "Gagal mengunduh CV");
+  }
+}
+
 /* =============== Recharts =============== */
 import {
   ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   BarChart, Bar,
-  AreaChart, Area, // ⬅️ tambahan buat area-graph
+  AreaChart, Area,
 } from "recharts";
 
 /* ===== Tooltip mungil untuk semua chart ===== */
@@ -566,15 +631,18 @@ export default function AdminDashboard() {
               <Table
                 columns={["Name","Email","Position","CV","Date"]}
                 rows={pageRowsA.map(a => [
-                  a.name, a.email, a.position,
+                  a.name,
+                  a.email,
+                  a.position,
                   a.cv_path ? (
-                    <a
-                      href={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${BUCKETS.CV}/${a.cv_path}`}
-                      target="_blank" rel="noreferrer"
-                      className="text-blue-600 hover:underline"
+                    <button
+                      key={a.id}
+                      onClick={() => handleDownloadCV({ cv_path: a.cv_path, name: a.name })}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded border text-sm hover:bg-gray-50"
+                      title="Download CV"
                     >
-                      Download
-                    </a>
+                      <Download size={14} /> Download
+                    </button>
                   ) : "-",
                   fmt(a.created_at)
                 ])}
