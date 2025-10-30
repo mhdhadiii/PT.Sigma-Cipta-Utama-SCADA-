@@ -14,6 +14,12 @@ import {
   CheckCircle2,
   Sparkles,
   Gauge,
+  // ikon untuk kartu AKHLAK
+  Users,
+  Handshake,
+  BadgeCheck,
+  SlidersHorizontal,
+  Award,
 } from "lucide-react";
 
 import HeroVideo from "../components/HeroVideo";
@@ -31,18 +37,13 @@ import plnLogo from "../assets/pln.png";
 // AKHLAK image
 import akhlakSide from "../assets/akhlak_side.jpg";
 
-/* ===== Helpers (less empty space, but normal element sizes) ===== */
+/* ===== Helpers ===== */
 const Stripe = ({ bg = "bg-white", children }) => (
   <div className={bg}>
-    {/* slightly tighter than default, but not tiny */}
     <div className="py-10 md:py-14">{children}</div>
   </div>
 );
-
-Stripe.propTypes = {
-  bg: PropTypes.string,
-  children: PropTypes.node,
-};
+Stripe.propTypes = { bg: PropTypes.string, children: PropTypes.node };
 
 /* ===== Data ===== */
 const SERVICES = [
@@ -90,6 +91,82 @@ const CLIENT_LOGOS = [
   { src: plnLogo, alt: "PLN" },
 ];
 
+/* ===== AKHLAK DATA ===== */
+const AKHLAK = [
+  {
+    key: "amanah",
+    title: "AMANAH",
+    subtitle: "Menepati janji",
+    bullets: [
+      "Menunaikan amanah yang diberikan",
+      "Jujur & bertanggung jawab",
+      "Taat pada peraturan & etika",
+    ],
+    Icon: BadgeCheck,
+    tone: "teal",
+  },
+  {
+    key: "kompeten",
+    title: "KOMPETEN",
+    subtitle: "Terus belajar & mengembangkan kapabilitas",
+    bullets: [
+      "Meningkatkan kualitas diri",
+      "Memberi hasil terbaik",
+      "Berbagi pengetahuan",
+    ],
+    Icon: Users,
+    tone: "navy",
+  },
+  {
+    key: "harmonis",
+    title: "HARMONIS",
+    subtitle: "Saling peduli & menghargai perbedaan",
+    bullets: [
+      "Menghargai orang lain",
+      "Suka menolong",
+      "Menciptakan suasana nyaman",
+    ],
+    Icon: Handshake,
+    tone: "teal",
+  },
+  {
+    key: "loyal",
+    title: "LOYAL",
+    subtitle: "Berdedikasi & mengutamakan kepentingan bangsa",
+    bullets: [
+      "Menjaga nama baik perusahaan",
+      "Patuh pada pimpinan",
+      "Setia pada tujuan bersama",
+    ],
+    Icon: ShieldCheck,
+    tone: "navy",
+  },
+  {
+    key: "adaptif",
+    title: "ADAPTIF",
+    subtitle: "Terus berinovasi & antusias hadapi perubahan",
+    bullets: [
+      "Cepat menyesuaikan",
+      "Inovatif & produktif",
+      "Berpikir solutif",
+    ],
+    Icon: SlidersHorizontal,
+    tone: "teal",
+  },
+  {
+    key: "kolaboratif",
+    title: "KOLABORATIF",
+    subtitle: "Membangun kerjasama yang sinergis",
+    bullets: [
+      "Mengutamakan kepentingan tim",
+      "Keterbukaan & komunikasi",
+      "Raih hasil bersama",
+    ],
+    Icon: Award,
+    tone: "navy",
+  },
+];
+
 /* ===== Animations ===== */
 const gridStagger = {
   hidden: { opacity: 0 },
@@ -109,13 +186,6 @@ const cardVariant = {
 };
 
 /* ===== Small UI ===== */
-const Badge = ({ children }) => (
-  <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs text-white backdrop-blur">
-    <CheckCircle2 className="h-3.5 w-3.5" /> {children}
-  </span>
-);
-Badge.propTypes = { children: PropTypes.node };
-
 const Pill = ({ children }) => (
   <span className="inline-block rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-700">
     {children}
@@ -197,12 +267,11 @@ ServiceCard.propTypes = {
 
 /* ===== Page ===== */
 export default function Home() {
-  /** ====== DRAG-TO-SCROLL for AKHLAK STRIPE ====== */
+  // drag helpers (dipakai untuk drag-scroll track kartu)
   const trackRef = useRef(null);
   const isDown = useRef(false);
   const startX = useRef(0);
   const scrollStart = useRef(0);
-
   const dragStart = (e) => {
     const el = trackRef.current;
     if (!el) return;
@@ -328,183 +397,98 @@ export default function Home() {
         </div>
       </Stripe>
 
-      {/* STRIPE 3: AKHLAK — mobile: image kiri + cards kanan + tombol geser */}
-      <Stripe bg="bg-white">
-        <Section
-          title="AKHLAK Values"
-          subtitle="Amanah • Kompeten • Harmonis • Loyal • Adaptif • Kolaboratif"
-          center
-          className="mt-1"
-        />
+{/* STRIPE 3: AKHLAK (gambar kiri, cards overlap sedikit & turun sedikit) */}
+<Stripe bg="bg-white">
+  <Section
+    title="AKHLAK Values"
+    subtitle="Amanah • Kompeten • Harmonis • Loyal • Adaptif • Kolaboratif"
+    center
+  >
+    {/* Full-bleed agar gambar benar² nempel ke tepi kiri viewport */}
+    <div className="relative w-screen left-1/2 -translate-x-1/2 overflow-visible">
+      <div className="grid grid-cols-12 gap-0 items-stretch">
 
-        <div className="w-full overflow-x-hidden">
-          {/* ===== MOBILE & TABLET (<= lg): image kiri + cards kanan ===== */}
-          <div className="flex lg:hidden flex-nowrap w-full relative">
+        {/* KIRI — GAMBAR mentok kiri & tidak terpotong */}
+        <div className="col-span-12 lg:col-span-6">
+          <div className="w-full h-full flex items-center justify-start">
+            <img
+              src={akhlakSide}
+              alt="SCU Engineer"
+              className="w-full h-auto max-h-[520px] object-contain"
+              loading="lazy"
+            />
+          </div>
+        </div>
 
-            {/* LEFT IMAGE */}
-            <div className="basis-[44%] shrink-0">
-              <div className="relative w-full h-[240px] xs:h-[260px] sm:h-[300px] overflow-hidden">
-                <img
-                  src={akhlakSide}
-                  alt="AKHLAK Values"
-                  className="absolute inset-0 w-full h-full object-cover object-left"
-                  loading="lazy"
-                />
-              </div>
-            </div>
+        {/* KANAN — CARDS: overlap ke kiri + turun sedikit */}
+        <div className="col-span-12 lg:col-span-6 relative lg:-ml-20 lg:mt-10">
 
-            {/* RIGHT TRACK */}
-            <div className="basis-[56%] shrink-0 bg-white relative">
-              <div
-                ref={trackRef}
-                className="
-            h-full flex gap-3 sm:gap-4 overflow-x-auto overflow-y-hidden px-3 sm:px-4 py-4
-            scroll-smooth snap-x snap-mandatory
-            select-none touch-pan-x overscroll-x-contain
-          "
-                style={{ scrollbarWidth: "none" }}
-              >
-                {[
-                  {
-                    title: "Amanah",
-                    desc: "Upholding the trust that has been given.",
-                    pts: [
-                      "Keep company and state secrets.",
-                      "Honor promises and commitments.",
-                      "Take responsibility for the trust given.",
-                    ],
-                  },
-                  {
-                    title: "Kompeten",
-                    desc: "Continuously learn and build capabilities.",
-                    pts: [
-                      "Improve competencies to meet challenges.",
-                      "Help others learn and grow.",
-                      "Deliver tasks with the best quality.",
-                    ],
-                  },
-                  {
-                    title: "Harmonis",
-                    desc: "Care for others and respect differences.",
-                    pts: [
-                      "Respect everyone regardless of background.",
-                      "Be willing to help others.",
-                      "Foster an inclusive work environment.",
-                    ],
-                  },
-                  {
-                    title: "Loyal",
-                    desc: "Dedicated and prioritizing the nation’s interests.",
-                    pts: [
-                      "Protect the good name of colleagues and the company.",
-                      "Be willing to sacrifice for bigger goals.",
-                      "Obey leadership within ethics.",
-                    ],
-                  },
-                  {
-                    title: "Adaptif",
-                    desc: "Keep innovating and be enthusiastic about change.",
-                    pts: [
-                      "Be open to new ideas.",
-                      "Adopt new tech enthusiastically.",
-                      "Adjust quickly to change.",
-                    ],
-                  },
-                  {
-                    title: "Kolaboratif",
-                    desc: "Build synergistic teamwork.",
-                    pts: [
-                      "Enable others to contribute.",
-                      "Collaborate for shared goals.",
-                      "Encourage cross-team synergy.",
-                    ],
-                  },
-                ].map(({ title, desc, pts }) => (
-                  <div
-                    key={title}
-                    className="
-                snap-start shrink-0
-                w-[260px] xs:w-[280px] sm:w-[300px] min-h-[300px]
-                rounded-[16px] p-4 sm:p-5 border border-gray-200 bg-white
-                shadow-sm
-              "
-                  >
-                    <h3 className="text-[17px] xs:text-[18px] sm:text-[20px] font-semibold">
-                      {title}
-                    </h3>
-                    <div className="w-[24px] h-[3px] bg-red-500 rounded mt-3 mb-4" />
-                    <p className="text-[13.5px] sm:text-[14px] leading-relaxed">{desc}</p>
-                    <ul className="mt-3 list-disc list-inside space-y-1.5 text-[13.5px] sm:text-[14px]">
-                      {pts.map((p) => (
-                        <li key={p}>{p}</li>
+          {/* (opsional) fade kanan; hapus jika tidak perlu */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent z-10" />
+
+          {/* TRACK SCROLL */}
+          <div
+            ref={trackRef}
+            onMouseDown={dragStart}
+            onMouseMove={dragMove}
+            onMouseLeave={dragEnd}
+            onMouseUp={dragEnd}
+            onTouchStart={dragStart}
+            onTouchMove={dragMove}
+            onTouchEnd={dragEnd}
+            className="relative flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 px-1"
+          >
+            {AKHLAK.map(({ key, title, subtitle, bullets, Icon, tone }) => {
+              const toneMap =
+                tone === "teal"
+                  ? { wrap: "bg-teal-600", chip: "bg-teal-400", ghost: "text-teal-300/30" }
+                  : { wrap: "bg-slate-800", chip: "bg-slate-600", ghost: "text-slate-400/20" };
+
+              return (
+                <div key={key} className="snap-start min-w-[300px] max-w-[300px]">
+                  <div className={`relative rounded-2xl ${toneMap.wrap} text-white p-6 py-8 min-h-[360px]`}>
+                    {Icon && (
+                      <Icon className={`absolute -right-2 -bottom-2 w-28 h-28 md:w-32 md:h-32 ${toneMap.ghost}`} />
+                    )}
+
+                    <div className="text-sm font-extrabold tracking-widest">{title}</div>
+                    <div className="mt-1 h-[3px] w-12 bg-white/80 rounded" />
+                    <p className="mt-3 text-xs text-white/90">{subtitle}</p>
+
+                    <ul className="mt-3 space-y-1.5 text-[12px]">
+                      {bullets.map((b) => (
+                        <li key={b} className="flex items-start gap-2">
+                          <span className={`mt-1 inline-block h-1.5 w-1.5 rounded-full ${toneMap.chip}`} />
+                          {b}
+                        </li>
                       ))}
                     </ul>
                   </div>
-                ))}
-                <span className="shrink-0 w-2" />
-              </div>
-
-              {/* ==== BUTTON NEXT / PREV (HP ONLY) ==== */}
-              <button
-                onClick={() => {
-                  trackRef.current.scrollLeft -= 260;
-                }}
-                className="
-            absolute left-1 top-1/2 -translate-y-1/2
-            w-7 h-7 flex items-center justify-center
-            bg-white/90 border rounded-full shadow-sm
-            text-gray-700 text-lg
-          "
-              >
-                ◀
-              </button>
-
-              <button
-                onClick={() => {
-                  trackRef.current.scrollLeft += 260;
-                }}
-                className="
-            absolute right-1 top-1/2 -translate-y-1/2
-            w-7 h-7 flex items-center justify-center
-            bg-white/90 border rounded-full shadow-sm
-            text-gray-700 text-lg
-          "
-              >
-                ▶
-              </button>
-            </div>
+                </div>
+              );
+            })}
           </div>
 
-          {/* ========== DESKTOP (>= lg): layout normal 5/7 ========== */}
-          <div className="hidden lg:grid grid-cols-12 gap-0 items-stretch">
-            <div className="col-span-5">
-              <div className="relative min-h-[420px] w-full overflow-hidden">
-                <img
-                  src={akhlakSide}
-                  className="w-full h-full object-cover object-left"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-
-            <div className="col-span-7 bg-white relative">
-              <div
-                ref={trackRef}
-                className="
-            lg:-ml-16 xl:-ml-20 2xl:-ml-24
-            flex gap-4 overflow-x-auto py-7 px-5
-            scroll-smooth snap-x snap-mandatory
-            touch-pan-x select-none
-          "
-                style={{ scrollbarWidth: "none" }}
-              >
-                {/* Card desktop sama seperti sebelumnya */}
-                {/* … card mapping tetap … */}
-              </div>
-            </div>
+          {/* Tombol scroll */}
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              onClick={() => trackRef.current?.scrollBy({ left: -320, behavior: "smooth" })}
+              className="w-10 h-10 grid place-items-center rounded-lg border bg-white shadow-sm hover:bg-gray-50"
+            >
+              ←
+            </button>
+            <button
+              onClick={() => trackRef.current?.scrollBy({ left: 320, behavior: "smooth" })}
+              className="w-10 h-10 grid place-items-center rounded-lg border bg-white shadow-sm hover:bg-gray-50"
+            >
+              →
+            </button>
           </div>
         </div>
-      </Stripe>
+      </div>
+    </div>
+  </Section>
+</Stripe>
 
 
       {/* STRIPE 4: Achievements */}
