@@ -1,7 +1,7 @@
 import React from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { Link } from "react-router-dom"; // <-- tambah ini
 
-// ✅ Paling aman → langsung gunakan path absolut dari public/
 const mp4Url = "/hero.mp4.mp4";
 
 export default function HeroVideo() {
@@ -14,7 +14,6 @@ export default function HeroVideo() {
         className="relative rounded-2xl overflow-hidden h-[85vh] min-h-[680px]"
         style={{ y }}
       >
-        {/* 🎥 Video Background */}
         <video
           className="absolute top-0 left-0 w-full h-full object-cover opacity-95"
           src={mp4Url}
@@ -23,18 +22,12 @@ export default function HeroVideo() {
           muted
           playsInline
           preload="metadata"
-          onLoadedData={() =>
-            console.log("[VIDEO LOADED]:", mp4Url)
-          }
-          onError={(e) => {
-            console.log("[VIDEO ERROR]", mp4Url, e);
-          }}
+          onLoadedData={() => console.log("[VIDEO LOADED]:", mp4Url)}
+          onError={(e) => { console.log("[VIDEO ERROR]", mp4Url, e); }}
         />
 
-        {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent backdrop-blur-[1px]" />
 
-        {/* Content */}
         <div className="relative z-10 flex flex-col justify-center h-full px-10 md:px-20 text-left">
           <motion.span
             className="text-sm md:text-base text-red-400 font-semibold mb-3 tracking-wide"
@@ -83,18 +76,19 @@ export default function HeroVideo() {
             viewport={{ once: false, amount: 0.5 }}
             transition={{ delay: 2, duration: 0.8 }}
           >
-            <a
-              href="/profile"
+            <Link
+              to="/profile"
               className="px-6 py-3 rounded-full bg-blue-600 text-white font-medium shadow-lg hover:bg-blue-700 transition"
             >
               Company Profile
-            </a>
-            <a
-              href="/contact"
+            </Link>
+
+            <Link
+              to="/contact"
               className="px-6 py-3 rounded-full bg-white/90 text-gray-900 font-medium shadow-lg hover:bg-white transition"
             >
               Contact Us →
-            </a>
+            </Link>
           </motion.div>
         </div>
       </motion.div>
