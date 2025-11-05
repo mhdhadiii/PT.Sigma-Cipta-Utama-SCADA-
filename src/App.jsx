@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+// src/App.js
+import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import MainLayout from "./layouts/MainLayout";
@@ -105,8 +106,6 @@ function AnimatedRoutes() {
 
         <Route path="/penghargaan" element={<Penghargaan />} />
 
-        
-
         {/* Fallback 404 */}
         <Route
           path="*"
@@ -134,14 +133,14 @@ function AnimatedRoutes() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <ScrollToTop />
       <MainLayout>
         <SessionGate>
           <AnimatedRoutes />
         </SessionGate>
       </MainLayout>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
