@@ -1,4 +1,6 @@
+// src/pages/AdminDashboard.jsx
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom"; // <-- tambah
 import { supabase, BUCKETS } from "../supabaseClient";
 import { LogOut, Users, Briefcase, Search, Download } from "lucide-react";
 import Logo from "../assets/logo.png";
@@ -16,7 +18,6 @@ const prettyMonth = (key) => {
   return new Intl.DateTimeFormat("id-ID", { month: "short", year: "2-digit" }).format(dt);
 };
 
-// helper upsert & remove utk array by id (dipakai Realtime)
 const upsertById = (arr, row) => {
   if (!row) return arr;
   const i = arr.findIndex((r) => r.id === row.id);
@@ -27,7 +28,7 @@ const upsertById = (arr, row) => {
 };
 const removeById = (arr, id) => arr.filter((r) => r.id !== id);
 
-// CSV export
+/* CSV helpers (tetap sama) */
 function toCSV(headers, rows) {
   const esc = (v) => {
     if (v === null || v === undefined) return "";
@@ -51,7 +52,7 @@ function downloadCSV(filename, headers, rows) {
   URL.revokeObjectURL(url);
 }
 
-/* ===== Helpers untuk download CV dari Supabase ===== */
+/* Download CV helpers (tetap sama) */
 const isHttpUrl = (s = "") => /^https?:\/\//i.test(s);
 const basename = (p = "") => p.split("/").pop() || "";
 const extname = (p = "") => {
@@ -76,13 +77,6 @@ async function downloadBlob(url, filename) {
   URL.revokeObjectURL(href);
 }
 
-/**
- * Download CV dari bucket Supabase.
- * - Jika cv_path URL penuh → langsung unduh.
- * - Jika path object (mis: "folder/file.pdf"):
- *   - Coba URL publik.
- *   - Jika 403/401 → buat signed URL (60s) lalu unduh.
- */
 async function handleDownloadCV({ cv_path, name }) {
   try {
     if (!cv_path) throw new Error("CV tidak tersedia");
@@ -95,7 +89,6 @@ async function handleDownloadCV({ cv_path, name }) {
       return;
     }
 
-    // Coba akses via public URL (jika bucket public)
     const publicUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${BUCKETS.CV}/${cv_path}`;
     const head = await fetch(publicUrl, { method: "HEAD" });
 
@@ -104,10 +97,9 @@ async function handleDownloadCV({ cv_path, name }) {
       return;
     }
 
-    // Jika bukan public, pakai signed URL
     const { data, error } = await supabase.storage
       .from(BUCKETS.CV)
-      .createSignedUrl(cv_path, 60); // berlaku 60 detik
+      .createSignedUrl(cv_path, 60);
 
     if (error || !data?.signedUrl) throw error || new Error("Gagal membuat signed URL");
     await downloadBlob(data.signedUrl, filename);
@@ -116,7 +108,7 @@ async function handleDownloadCV({ cv_path, name }) {
   }
 }
 
-/* =============== Recharts =============== */
+/* =============== Recharts imports (tetap sama) =============== */
 import {
   ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -124,7 +116,7 @@ import {
   AreaChart, Area,
 } from "recharts";
 
-/* ===== Tooltip mungil untuk semua chart ===== */
+/* Tooltip kecil */
 function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   const { name, value, color } = payload[0];
@@ -140,7 +132,7 @@ function ChartTooltip({ active, payload, label }) {
   );
 }
 
-/* =============== Small UI =============== */
+/* Small UI components (StatCard, Card, Table, Pager) - sama persis seperti filemu */
 function StatCard({ title, value }) {
   return (
     <div className="p-5 rounded-2xl bg-white shadow-sm border border-gray-100">
@@ -149,7 +141,6 @@ function StatCard({ title, value }) {
     </div>
   );
 }
-
 function Card({ title, right, children }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -161,24 +152,17 @@ function Card({ title, right, children }) {
     </div>
   );
 }
-
 function Table({ columns, rows }) {
   return (
     <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100">
       <table className="w-full text-sm">
         <thead className="bg-gray-50 text-gray-600 text-left">
-          <tr>
-            {columns.map((c) => (
-              <th key={c} className="px-4 py-2">{c}</th>
-            ))}
-          </tr>
+          <tr>{columns.map((c) => <th key={c} className="px-4 py-2">{c}</th>)}</tr>
         </thead>
         <tbody>
           {rows.map((r, i) => (
             <tr key={i} className="border-t hover:bg-gray-50">
-              {r.map((cell, j) => (
-                <td key={j} className="px-4 py-2">{cell}</td>
-              ))}
+              {r.map((cell, j) => <td key={j} className="px-4 py-2">{cell}</td>)}
             </tr>
           ))}
         </tbody>
@@ -186,8 +170,6 @@ function Table({ columns, rows }) {
     </div>
   );
 }
-
-/* Pagination Control */
 function Pager({ page, setPage, pageCount, pageSize, setPageSize, total }) {
   const canPrev = page > 1;
   const canNext = page < pageCount;
@@ -233,7 +215,7 @@ function Pager({ page, setPage, pageCount, pageSize, setPageSize, total }) {
   );
 }
 
-/* =============== Auth UI =============== */
+/* ===== AdminLogin (sama) ===== */
 function AdminLogin() {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
@@ -249,33 +231,12 @@ function AdminLogin() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-50 to-blue-100">
-      <form
-        onSubmit={login}
-        className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm space-y-4"
-      >
+      <form onSubmit={login} className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm space-y-4">
         <img src={Logo} alt="logo" className="h-12 mx-auto" />
         <h1 className="text-xl font-bold text-center">Admin Login</h1>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border rounded-lg p-2"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={pw}
-          onChange={(e) => setPw(e.target.value)}
-          className="w-full border rounded-lg p-2"
-          required
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-        >
+        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-lg p-2" required />
+        <input type="password" placeholder="Password" value={pw} onChange={(e) => setPw(e.target.value)} className="w-full border rounded-lg p-2" required />
+        <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
           {loading ? "Loading..." : "Masuk"}
         </button>
       </form>
@@ -285,23 +246,21 @@ function AdminLogin() {
 
 /* =============== Main =============== */
 export default function AdminDashboard() {
+  const navigate = useNavigate(); // <-- gunakan navigate
   const [user, setUser] = useState(null);
   const [tab, setTab] = useState("dashboard");
   const [contacts, setContacts] = useState([]);
   const [applications, setApps] = useState([]);
   const [counts, setCounts] = useState({ contacts: 0, applications: 0 });
 
-  // Search dipisah per-tab:
   const [searchC, setSearchC] = useState("");
   const [searchA, setSearchA] = useState("");
 
-  // pagination state per-tab
   const [pageC, setPageC] = useState(1);
   const [sizeC, setSizeC] = useState(10);
   const [pageA, setPageA] = useState(1);
   const [sizeA, setSizeA] = useState(10);
 
-  // auth
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getSession();
@@ -311,7 +270,6 @@ export default function AdminDashboard() {
     return () => sub?.subscription?.unsubscribe();
   }, []);
 
-  // fetch awal
   useEffect(() => {
     const fetchData = async () => {
       const { data: c } = await supabase.from("contacts").select("*").order("created_at", { ascending: false });
@@ -323,42 +281,35 @@ export default function AdminDashboard() {
     fetchData();
   }, [tab]);
 
-  // Realtime
   useEffect(() => {
     const chContacts = supabase
       .channel("realtime:contacts")
-      .on("postgres_changes",
-        { event: "*", schema: "public", table: "contacts" },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            setContacts((prev) => upsertById(prev, payload.new));
-            setCounts((c) => ({ ...c, contacts: (c.contacts || 0) + 1 }));
-          } else if (payload.eventType === "UPDATE") {
-            setContacts((prev) => upsertById(prev, payload.new));
-          } else if (payload.eventType === "DELETE") {
-            setContacts((prev) => removeById(prev, payload.old?.id));
-            setCounts((c) => ({ ...c, contacts: Math.max((c.contacts || 1) - 1, 0) }));
-          }
+      .on("postgres_changes", { event: "*", schema: "public", table: "contacts" }, (payload) => {
+        if (payload.eventType === "INSERT") {
+          setContacts((prev) => upsertById(prev, payload.new));
+          setCounts((c) => ({ ...c, contacts: (c.contacts || 0) + 1 }));
+        } else if (payload.eventType === "UPDATE") {
+          setContacts((prev) => upsertById(prev, payload.new));
+        } else if (payload.eventType === "DELETE") {
+          setContacts((prev) => removeById(prev, payload.old?.id));
+          setCounts((c) => ({ ...c, contacts: Math.max((c.contacts || 1) - 1, 0) }));
         }
-      )
+      })
       .subscribe();
 
     const chApps = supabase
       .channel("realtime:applications")
-      .on("postgres_changes",
-        { event: "*", schema: "public", table: "applications" },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            setApps((prev) => upsertById(prev, payload.new));
-            setCounts((c) => ({ ...c, applications: (c.applications || 0) + 1 }));
-          } else if (payload.eventType === "UPDATE") {
-            setApps((prev) => upsertById(prev, payload.new));
-          } else if (payload.eventType === "DELETE") {
-            setApps((prev) => removeById(prev, payload.old?.id));
-            setCounts((c) => ({ ...c, applications: Math.max((c.applications || 1) - 1, 0) }));
-          }
+      .on("postgres_changes", { event: "*", schema: "public", table: "applications" }, (payload) => {
+        if (payload.eventType === "INSERT") {
+          setApps((prev) => upsertById(prev, payload.new));
+          setCounts((c) => ({ ...c, applications: (c.applications || 0) + 1 }));
+        } else if (payload.eventType === "UPDATE") {
+          setApps((prev) => upsertById(prev, payload.new));
+        } else if (payload.eventType === "DELETE") {
+          setApps((prev) => removeById(prev, payload.old?.id));
+          setCounts((c) => ({ ...c, applications: Math.max((c.applications || 1) - 1, 0) }));
         }
-      )
+      })
       .subscribe();
 
     return () => {
@@ -367,9 +318,11 @@ export default function AdminDashboard() {
     };
   }, []);
 
-  const logout = async () => { await supabase.auth.signOut(); };
+  const logout = async () => {
+    await supabase.auth.signOut();
+    navigate("/"); // <-- redirect ke root setelah logout
+  };
 
-  // ====== Aggregations for charts ======
   const last12MonthKeys = useMemo(() => {
     const now = new Date();
     const keys = [];
@@ -400,7 +353,6 @@ export default function AdminDashboard() {
       .slice(0, 8);
   }, [applications]);
 
-  // ====== Filtering & Pagination (client-side) ======
   const qC = searchC.toLowerCase();
   const qA = searchA.toLowerCase();
 
@@ -422,18 +374,15 @@ export default function AdminDashboard() {
     );
   }, [applications, qA]);
 
-  // reset page ke 1 setiap query berubah (per-tab)
   useEffect(() => { setPageC(1); }, [qC]);
   useEffect(() => { setPageA(1); }, [qA]);
 
-  // paging contacts
   const pageCountC = Math.max(1, Math.ceil(filteredContacts.length / sizeC));
   const pageRowsC = useMemo(() => {
     const start = (pageC - 1) * sizeC;
     return filteredContacts.slice(start, start + sizeC);
   }, [filteredContacts, pageC, sizeC]);
 
-  // paging applications
   const pageCountA = Math.max(1, Math.ceil(filteredApplications.length / sizeA));
   const pageRowsA = useMemo(() => {
     const start = (pageA - 1) * sizeA;
@@ -444,18 +393,15 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
       <aside className="w-60 bg-white shadow flex flex-col">
-        {/* CLICKABLE LOGO → go to Dashboard */}
         <div
-          onClick={() => setTab("dashboard")}
+          onClick={() => { setTab("dashboard"); navigate("/admin"); }} // <-- navigate to /admin (hash-aware)
           className="px-6 py-4 border-b flex items-center justify-center cursor-pointer hover:bg-gray-50"
           title="Kembali ke Dashboard"
         >
           <img src={Logo} alt="SCU Logo" className="h-12 w-auto" />
         </div>
 
-        {/* Menu */}
         <nav className="flex-1 p-4 space-y-2">
           <button onClick={() => setTab("contacts")}
             className={cn("w-full flex items-center gap-2 px-3 py-2 rounded-lg",
@@ -477,9 +423,7 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
-      {/* Main */}
       <main className="flex-1 flex flex-col">
-        {/* Header tanpa search global */}
         <header className="bg-white px-6 py-3 shadow flex justify-between items-center">
           <h1 className="font-semibold">
             {tab === "dashboard" ? "Dashboard" : tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -487,8 +431,8 @@ export default function AdminDashboard() {
           <div />
         </header>
 
-        {/* Content */}
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
+          {/* ... isi konten tetap sama seperti file originalmu ... */}
           {tab === "dashboard" && (
             <>
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -498,7 +442,6 @@ export default function AdminDashboard() {
               </div>
 
               <div className="grid lg:grid-cols-2 gap-6">
-                {/* Kontak per Bulan – area smooth + gradient */}
                 <Card title="Kontak per Bulan (12 bln)">
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
@@ -514,33 +457,18 @@ export default function AdminDashboard() {
                         <YAxis allowDecimals={false} width={28} tick={{ fontSize: 12, fill: "#6b7280" }} />
                         <Tooltip content={<ChartTooltip />} />
                         <Legend wrapperStyle={{ fontSize: 12 }} />
-                        <Area
-                          type="monotone"
-                          dataKey="contacts"
-                          name="Contacts"
-                          stroke="#2563eb"
-                          strokeWidth={2}
-                          fill="url(#ctArea)"
-                          dot={{ r: 2 }}
-                          activeDot={{ r: 4 }}
-                        />
+                        <Area type="monotone" dataKey="contacts" name="Contacts" stroke="#2563eb" strokeWidth={2} fill="url(#ctArea)" dot={{ r: 2 }} activeDot={{ r: 4 }} />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
                 </Card>
 
-                {/* Aplikasi per Posisi – bar radius & layout rapih */}
                 <Card title="Aplikasi per Posisi (Top 8)">
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={appsByPosition} margin={{ top: 8, right: 12, left: 0, bottom: 12 }} barSize={28}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis
-                          dataKey="position"
-                          tick={{ fontSize: 12, fill: "#6b7280" }}
-                          tickMargin={10}
-                          interval={0}
-                        />
+                        <XAxis dataKey="position" tick={{ fontSize: 12, fill: "#6b7280" }} tickMargin={10} interval={0} />
                         <YAxis allowDecimals={false} width={28} tick={{ fontSize: 12, fill: "#6b7280" }} />
                         <Tooltip content={<ChartTooltip />} />
                         <Legend wrapperStyle={{ fontSize: 12 }} />
@@ -554,107 +482,54 @@ export default function AdminDashboard() {
           )}
 
           {tab === "contacts" && (
-            <Card
-              title="Contacts"
-              right={
-                <div className="flex items-center gap-2">
-                  {/* Search khusus Contacts */}
-                  <div className="relative">
-                    <Search size={16} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      value={searchC}
-                      onChange={(e) => setSearchC(e.target.value)}
-                      placeholder="Cari nama, email, atau pesan…"
-                      className="border rounded-lg pl-8 pr-3 py-1.5 text-sm"
-                    />
-                  </div>
-                  <button
-                    onClick={() => {
-                      const headers = ["id","name","email","message","created_at"];
-                      const rows = filteredContacts.map(c => [c.id, c.name, c.email, c.message, c.created_at]);
-                      downloadCSV(`contacts_${Date.now()}.csv`, headers, rows);
-                    }}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50"
-                    title="Export hasil filter ke CSV"
-                  >
-                    <Download size={16}/> Export CSV
-                  </button>
+            <Card title="Contacts" right={
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search size={16} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input type="text" value={searchC} onChange={(e) => setSearchC(e.target.value)} placeholder="Cari nama, email, atau pesan…" className="border rounded-lg pl-8 pr-3 py-1.5 text-sm" />
                 </div>
-              }
-            >
-              <Table
-                columns={["Name","Email","Message","Date"]}
-                rows={pageRowsC.map(c => [c.name, c.email, c.message, fmt(c.created_at)])}
-              />
-              <Pager
-                page={pageC}
-                setPage={setPageC}
-                pageCount={pageCountC}
-                pageSize={sizeC}
-                setPageSize={setSizeC}
-                total={filteredContacts.length}
-              />
+                <button onClick={() => {
+                  const headers = ["id","name","email","message","created_at"];
+                  const rows = filteredContacts.map(c => [c.id, c.name, c.email, c.message, c.created_at]);
+                  downloadCSV(`contacts_${Date.now()}.csv`, headers, rows);
+                }} className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50" title="Export hasil filter ke CSV">
+                  <Download size={16}/> Export CSV
+                </button>
+              </div>
+            }>
+              <Table columns={["Name","Email","Message","Date"]} rows={pageRowsC.map(c => [c.name, c.email, c.message, fmt(c.created_at)])} />
+              <Pager page={pageC} setPage={setPageC} pageCount={pageCountC} pageSize={sizeC} setPageSize={setSizeC} total={filteredContacts.length} />
             </Card>
           )}
 
           {tab === "applications" && (
-            <Card
-              title="Applications"
-              right={
-                <div className="flex items-center gap-2">
-                  {/* Search khusus Applications */}
-                  <div className="relative">
-                    <Search size={16} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      value={searchA}
-                      onChange={(e) => setSearchA(e.target.value)}
-                      placeholder="Cari nama, email, posisi…"
-                      className="border rounded-lg pl-8 pr-3 py-1.5 text-sm"
-                    />
-                  </div>
-                  <button
-                    onClick={() => {
-                      const headers = ["id","name","email","position","cv_path","created_at"];
-                      const rows = filteredApplications.map(a => [a.id, a.name, a.email, a.position, a.cv_path ?? "", a.created_at]);
-                      downloadCSV(`applications_${Date.now()}.csv`, headers, rows);
-                    }}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50"
-                    title="Export hasil filter ke CSV"
-                  >
-                    <Download size={16}/> Export CSV
-                  </button>
+            <Card title="Applications" right={
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search size={16} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input type="text" value={searchA} onChange={(e) => setSearchA(e.target.value)} placeholder="Cari nama, email, posisi…" className="border rounded-lg pl-8 pr-3 py-1.5 text-sm" />
                 </div>
-              }
-            >
-              <Table
-                columns={["Name","Email","Position","CV","Date"]}
-                rows={pageRowsA.map(a => [
-                  a.name,
-                  a.email,
-                  a.position,
-                  a.cv_path ? (
-                    <button
-                      key={a.id}
-                      onClick={() => handleDownloadCV({ cv_path: a.cv_path, name: a.name })}
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded border text-sm hover:bg-gray-50"
-                      title="Download CV"
-                    >
-                      <Download size={14} /> Download
-                    </button>
-                  ) : "-",
-                  fmt(a.created_at)
-                ])}
-              />
-              <Pager
-                page={pageA}
-                setPage={setPageA}
-                pageCount={pageCountA}
-                pageSize={sizeA}
-                setPageSize={setSizeA}
-                total={filteredApplications.length}
-              />
+                <button onClick={() => {
+                  const headers = ["id","name","email","position","cv_path","created_at"];
+                  const rows = filteredApplications.map(a => [a.id, a.name, a.email, a.position, a.cv_path ?? "", a.created_at]);
+                  downloadCSV(`applications_${Date.now()}.csv`, headers, rows);
+                }} className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50" title="Export hasil filter ke CSV">
+                  <Download size={16}/> Export CSV
+                </button>
+              </div>
+            }>
+              <Table columns={["Name","Email","Position","CV","Date"]} rows={pageRowsA.map(a => [
+                a.name,
+                a.email,
+                a.position,
+                a.cv_path ? (
+                  <button key={a.id} onClick={() => handleDownloadCV({ cv_path: a.cv_path, name: a.name })} className="inline-flex items-center gap-1 px-2 py-1 rounded border text-sm hover:bg-gray-50" title="Download CV">
+                    <Download size={14} /> Download
+                  </button>
+                ) : "-",
+                fmt(a.created_at)
+              ])} />
+              <Pager page={pageA} setPage={setPageA} pageCount={pageCountA} pageSize={sizeA} setPageSize={setSizeA} total={filteredApplications.length} />
             </Card>
           )}
         </div>

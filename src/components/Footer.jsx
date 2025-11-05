@@ -1,4 +1,6 @@
 // src/components/Footer.jsx
+import React from "react";
+import { Link } from "react-router-dom"; // <-- untuk navigasi internal
 import Logo from "../assets/logo.png";
 import { Facebook, Instagram, Youtube, Linkedin, ArrowUp } from "lucide-react";
 
@@ -62,10 +64,13 @@ export default function Footer() {
               <ul className="space-y-2 text-gray-300 text-sm">
                 {quickLinks.map((l) => (
                   <li key={l.label}>
-                    <a href={l.to} className="hover:text-white transition inline-flex items-center gap-2">
+                    <Link
+                      to={l.to}
+                      className="hover:text-white transition inline-flex items-center gap-2"
+                    >
                       <span className="h-1.5 w-1.5 rounded-full bg-[#0076C0]" />
                       {l.label}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -103,4 +108,3 @@ export default function Footer() {
     </footer>
   );
 }
-  
