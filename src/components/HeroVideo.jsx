@@ -2,7 +2,7 @@ import React from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
 // ✅ Paling aman → langsung gunakan path absolut dari public/
-const mp4Url = "/hero.mp4";
+const mp4Url = "/hero.mp4.mp4";
 
 export default function HeroVideo() {
   const { scrollY } = useScroll();
